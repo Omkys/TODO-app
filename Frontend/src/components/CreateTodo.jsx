@@ -1,47 +1,48 @@
-import { useState } from "react";
+import React, { useState } from "react";
 
-export function CreateTodo(props) {
-    
-    const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
-    return (
-        <div>
-            <input id="title" style={{
-                padding: "10px",
-                margin: "10px"
-            }} type="text" placeholder="title" onChange={function(e) {
-                setTitle(e.target.value);
-            }}></input> <br />
-            <input id="description" style={{
-                padding: "10px",
-                margin: "10px"
-            }} type="text" placeholder="description" onChange={function(e) {
-                setDescription(e.target.value);
-            }}></input> <br />
+export const CreateTodo = () => {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
 
-            <button style={{
-                padding: "10px",
-                margin: "10px",
-                backgroundColor: "lightcoral"
-                
-            }} onClick={() => {
-                fetch("http://localhost:3000/todo", {
-                    method: "POST",
-                    body: JSON.stringify({ 
-                        title: title,
-                        description: description,
-                    }),
-                    headers: {
-                        "Content-Type": "application/json"
-                    }
-                }).then(async function(res) {
-                    const json = await res.json();
-                    alert("Todo created successfully");
-                    setTitle(""); // Clear title input
-                    setDescription(""); // Clear description input
-                })
-            }}>add a todo</button>
+  const handleSubmit = async () => {
+    try {
+      const response = await fetch("http://localhost:3000/todo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, description }),
+      });
 
-        </div>
-    )
-}
+      await response.json();
+      alert("Todo Created Successfully now you can load it");
+      setTitle("");
+      setDescription("");
+    } catch (error) {
+      console.error("Error creating todo:", error);
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-2">
+      <input
+        type="text"
+        placeholder="Title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        className="bg-white px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300"
+      />
+      <input
+        type="text"
+        placeholder="Description"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        className="bg-white px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300"
+      />
+      <button
+        onClick={handleSubmit}
+        className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md shadow-md transition"
+      >
+        Add Todo
+      </button>
+    </div>
+  );
+};

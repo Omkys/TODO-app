@@ -1,13 +1,13 @@
 const express = require('express');
-const { createtodo, updatetodo } = require('./types'); // createtodo and updatetodo is imported from types.js and both are object 
-const todo  = require('./db');
+const { createtodo, updatetodo } = require('./types'); // createtodo and updatetodo are imported from types.js
+const todo = require('./db');
 const cors = require('cors');
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Create a new todo post api is created /api bro ye / vala hi hai
+// Create a new todo
 app.post('/todo', async (req, res) => {
     const createPayload = req.body;
     const parsedPayload = createtodo.safeParse(createPayload);
@@ -16,7 +16,7 @@ app.post('/todo', async (req, res) => {
         return res.status(411).json({ msg: "Invalid input" });
     }
 
-    try {                                      //try catch use when we are using async await and use it to handle the errrros and log the errors
+    try {
         await todo.create({
             title: createPayload.title,
             description: createPayload.description,
@@ -66,6 +66,49 @@ app.put('/completed', async (req, res) => {
         console.error("Error updating todo:", error);
         res.status(500).json({ msg: "Internal server error" });
     }
+});
+
+// Delete a todo by ID
+app.delete('/todo/:id', async (req, res) => {
+    const todoId = req.params.id;
+
+    try {
+        const deletedTodo = await todo.findByIdAndDelete(todoId);
+
+        if (!deletedTodo) {
+            return res.status(404).json({ msg: "Todo not found" });
+        }
+
+        res.json({ msg: "Todo deleted successfully" });
+    } catch (error) {
+        console.error("Error deleting todo:", error);
+        res.status(500).json({ msg: "Internal server error" });
+    }
+});
+// PUT /undo - mark todo as not completed
+app.put('/undo', async (req, res) => {
+  const { id } = req.body;
+
+  if (!id) {
+    return res.status(400).json({ msg: "ID is required" });
+  }
+
+  try {
+    const updatedTodo = await todo.findByIdAndUpdate(
+      id,
+      { completed: false },
+      { new: true }
+    );
+
+    if (!updatedTodo) {
+      return res.status(404).json({ msg: "Todo not found" });
+    }
+
+    res.json({ msg: "Todo marked as not completed", updatedTodo });
+  } catch (error) {
+    console.error("Error undoing todo:", error);
+    res.status(500).json({ msg: "Internal server error" });
+  }
 });
 
 // Start the server
